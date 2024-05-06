@@ -1,0 +1,16 @@
+.main_page {
+    display: flex;
+    border: 2px solid black;
+}
+
+.left {
+    flex: 1;
+    padding: 20px;
+    border: 2px solid black;
+}
+
+.right {
+    flex: 1;
+    padding: 20px;
+    border: 2px solid black;
+}

@@ -1,0 +1,87 @@
+#!/bin/bash
+
+# Kiểm tra số lượng đối số đầu vào
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <ip_address_or_range>"
+    exit 1
+fi
+
+# Lưu địa chỉ IP hoặc dải IP từ đầu vào
+target=$1
+
+# Quét tất cả các cổng và lấy danh sách các cổng mở
+open_ports=$(nmap -p- --open --min-rate=1000 $target | grep "^ *[0-9]" | cut -d '/' -f 1 | tr '\n' ',' | sed 's/,$//')
+
+# In ra danh sách các cổng mở
+echo "Open ports on $target: $open_ports"
+echo "=============================================="
+echo "=============================================="
+echo "Quét dịch vụ của các cổng TCP"
+nmap $target 
+echo "=============================================="
+echo "=============================================="
+if echo "$open_ports" | grep -q 53; then
+	echo "Sử dụng nslookup lấy DNS"
+	result=$(nslookup $target)
+	echo "$result"
+	name_value=$(echo "$result" | awk '/name/ {print $NF}')
+	domain=$(echo "$name_value" | cut -d'.' -f2-)
+	echo "Domain: $domain"
+	echo "Thu thập các bản ghi DNS từ domain có được"
+	dnsrecon -d $domain
+fi
+echo "=============================================="
+echo "=============================================="
+if echo "$open_ports" | grep -q 445; then
+	echo "Thu thập SMB"
+	nmap -p 445 -A $target | tail -n +4 | head -n -2
+	nmap -p 445 --script smb-protocols $target | tail -n +4 | head -n -1
+fi
+
+echo "=============================================="
+echo "=============================================="
+if echo "$open_ports" | grep -q 139; then
+   echo "Thu thập NetBIOS"
+   nbtscan -v $target
+fi
+echo "=============================================="
+echo "=============================================="
+if echo "$open_ports" | grep -q 25; then
+   echo -e "Thu thập SMTP"
+    nmap -p 25 --script=smtp-enum-users,smtp-commands,smtp-open-relay $target | tail -n +4 | head -n -3
+fi
+echo "=============================================="
+echo "=============================================="
+
+echo -e "Thu thập SNMP :"
+snmp-check 192.168.186.157 | awk '$1 != "0.0.0.0"'
+
+echo "=============================================="
+echo "=============================================="
+if echo "$open_ports" | grep -q 111; then
+	echo "Thu thập RPCinfo"
+	result=$(rpcinfo -p $target)
+	echo "$result"
+	if echo "$result" | grep -q nfs; then
+	    echo "Dịch vụ NFS đã được tìm thấy."
+	    showmount -e $target
+	fi
+fi
+echo "=============================================="
+echo "=============================================="
+echo "Kiểm tra dịch vụ telnet"
+result=$(nmap -p 23 $target)
+echo "$result" | tail -n +4 | head -n -3
+echo "=============================================="
+echo "=============================================="
+echo "Kiểm tra dịch vụ VPN"
+ike-scan -M $target
+echo "=============================================="
+echo "=============================================="
+if echo "$open_ports" | grep -q 389; then
+	echo "Kiểm tra xem ldap"
+	ldapsearch -x -H ldap://$target 
+fi
+echo "=============================================="
+echo "=============================================="
+echo "Kết thúc quá trình."

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="css.css">
+    <title>Network Scanning Tool</title>
+</head>
+<body>
+    <div class="main_page">
+        <div class="left">
+           <h1>Network Scanning Tool</h1>
+            <form id="scanForm">
+                <label for="ip_address">IP Address:</label><br>
+                <input type="text" id="ip_address" name="ip_address"><br><br>
+                <label for="ports">Ports:</label><br>
+                <input type="text" id="ports" name="ports" style="width: 500px;" readonly><br><br>
+                <input type="button" id="scanButton" value="Quét" onclick="performScan()">
+            </form>
+            <br>
+            <span id="scanTime"></span>
+        </div>
+        <div class="right">
+            <input type="button" id="pingnmap" value="Kiểm tra kết nối và quét cổng" onclick="pingandscanport()">
+            <br>
+            <br>
+            <input type="checkbox" id="selectAll" onclick="toggleCheckboxes()"><label for="selectAll">Select All</label><br>
+            <br>
+            <input type="checkbox" id="port21" name="port" value="21" onchange="updatePorts()">
+            <label for="port21">FTP</label>
+            <input type="checkbox" id="port22" name="port" value="22" onchange="updatePorts()">
+            <label for="port22">SSH</label>
+            <input type="checkbox" id="port23" name="port" value="23" onchange="updatePorts()">
+            <label for="port23">Telnet</label>
+            <input type="checkbox" id="port25" name="port" value="25" onchange="updatePorts()">
+            <label for="port25">SMTP</label>
+            <input type="checkbox" id="port53" name="port" value="53" onchange="updatePorts()">
+            <label for="port53">Domain</label>
+            <input type="checkbox" id="port69" name="port" value="69" onchange="updatePorts()">
+            <label for="port69">TFTP</label>
+            <input type="checkbox" id="port80" name="port" value="80" onchange="updatePorts()">
+            <label for="port80">HTTP</label>
+            <input type="checkbox" id="port111" name="port" value="111" onchange="updatePorts()">
+            <label for="port111">RPCBind</label>
+            <input type="checkbox" id="port123" name="port" value="123" onchange="updatePorts()">
+            <label for="port123">NTP</label>
+            <input type="checkbox" id="port135" name="port" value="135" onchange="updatePorts()">
+            <label for="port135">135</label>
+            <input type="checkbox" id="port139" name="port" value="139" onchange="updatePorts()">
+            <label for="port139">NetBios</label>
+            <input type="checkbox" id="port161" name="port" value="161" onchange="updatePorts()">
+            <label for="port161">SNMP</label>
+            <input type="checkbox" id="port179" name="port" value="179" onchange="updatePorts()">
+            <label for="port179">BGP</label>
+            <input type="checkbox" id="port389" name="port" value="389" onchange="updatePorts()">
+            <label for="port389">LDAP</label>
+            <input type="checkbox" id="port445" name="port" value="445" onchange="updatePorts()">
+            <label for="port445">SMB</label>
+            <input type="checkbox" id="port500" name="port" value="500" onchange="updatePorts()">
+            <label for="port500">VPN Ipsec</label>
+        </div>
+        
+    </div>
+    <br>
+    <button id="clearresult" onclick="clearresult()">Clear</button>
+    <button  onclick="exportHTML()">xuất word</button>
+    <br>
+    <div id="validator">
+        <p id="result"></p>
+    </div>
+
+    <script>
+        function clearresult(){
+            document.getElementById("result").innerHTML = "";
+        }
+        function toggleCheckboxes() {
+            var selectAllCheckbox = document.getElementById("selectAll");
+            var checkboxes = document.querySelectorAll('input[name="port"]');
+            checkboxes.forEach(function(checkbox) {
+                checkbox.checked = selectAllCheckbox.checked;
+                updatePorts(checkbox); 
+            });
+        }
+        
+        function updatePorts() {
+            var checkedPorts = [];
+            var checkboxes = document.querySelectorAll('input[type="checkbox"][name="port"]:checked');
+            checkboxes.forEach(function(checkbox) {
+                checkedPorts.push(checkbox.value);
+            });
+            document.getElementById('ports').value = checkedPorts.join(', ');
+        }
+
+        function pingandscanport(){
+            var ip_address = document.getElementById("ip_address").value;
+            var url = "/cgi-bin/ping.cgi"
+            url +="?ip_address=" + encodeURIComponent(ip_address);
+            
+            var pingnmap = document.getElementById("pingnmap");
+            pingnmap.disabled = true;
+            var scanButton = document.getElementById("scanButton");
+            scanButton.disabled = true;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", url, true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    document.getElementById("result").innerHTML += xhr.responseText;
+                    
+                }
+                scanButton.disabled = false;
+                pingnmap.disabled = false;
+            };
+            xhr.send();
+        }
+
+        function performScan() {
+            var ip_address = document.getElementById("ip_address").value;
+            if (!ip_address) {
+                alert("Vui lòng nhập địa chỉ IP trước khi quét.");
+                return;
+            }
+            var ports = document.getElementById("ports").value;
+            var startTime = performance.now();
+            var scanTimeElement = document.getElementById("scanTime");
+            scanTimeElement.innerText = "Đang quét...";
+
+            var intervalId = setInterval(function() {
+                var currentTime = performance.now();
+                var elapsedTime = currentTime - startTime;
+                scanTimeElement.innerText = "Thời gian quét: " + elapsedTime.toFixed(0) + " ms";
+            }, 100); 
+
+            var url = "/cgi-bin/scan.cgi"
+            url +="?ip_address=" + encodeURIComponent(ip_address);
+            url +="&&port=" + encodeURIComponent(ports);
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", url, true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    clearInterval(intervalId);
+                    document.getElementById("result").innerHTML += xhr.responseText;
+                }
+            };
+            xhr.send();
+        }
+        function exportHTML(){
+            var header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
+                 "xmlns:w='urn:schemas-microsoft-com:office:word' "+
+                 "xmlns='http://www.w3.org/TR/REC-html40'>"+
+                 "<head><meta charset='utf-8'><title>Export HTML to Word Document with JavaScript</title></head><body>";
+            var footer = "</body></html>";
+            var sourceHTML = header+document.getElementById("validator").innerHTML+footer;
+            
+            var source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+            var fileDownload = document.createElement("a");
+            document.body.appendChild(fileDownload);
+            fileDownload.href = source;
+            fileDownload.download = 'document.doc';
+            fileDownload.click();
+            document.body.removeChild(fileDownload);
+         }
+    </script>
+</body>
+</html>
+
