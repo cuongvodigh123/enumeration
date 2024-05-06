@@ -3,13 +3,14 @@ cài đặt apache2
 lưu thư mục www như trên
 cấu hình
 trong file etc/apache2.conf
-<>
-    <Directory /var/www/>
-        Options Indexes FollowSymLinks
-        AllowOverride None
-        Require all granted
-    </Directory>
-<>
+
+
+<Directory /var/www/>
+    Options Indexes FollowSymLinks
+    AllowOverride None
+    Require all granted
+</Directory>
+
 trong file /etc/sites-available/000-default.conf
 
 <VirtualHost *:80>
@@ -49,6 +50,8 @@ trong file /etc/sudoers thêm 2 dòng sau
 www-data ALL=(ALL) NOPASSWD: /usr/bin/*
 
 www-data ALL=(ALL) NOPASSWD: /usr/sbin/*
+
+chạy các lệnh sau 
 
 chmod +x /var/www/cgi-bin/*
 
