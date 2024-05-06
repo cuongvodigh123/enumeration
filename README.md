@@ -3,13 +3,13 @@ cài đặt apache2
 lưu thư mục www như trên
 cấu hình
 trong file etc/apache2.conf
-//
-<Directory /var/www/>
-	Options Indexes FollowSymLinks
-	AllowOverride None
-	Require all granted
-</Directory>
-//
+<>
+    <Directory /var/www/>
+        Options Indexes FollowSymLinks
+        AllowOverride None
+        Require all granted
+    </Directory>
+<>
 trong file /etc/sites-available/000-default.conf
 
 <VirtualHost *:80>
