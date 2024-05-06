@@ -47,5 +47,7 @@ www-data ALL=(ALL) NOPASSWD: /usr/bin/*
 www-data ALL=(ALL) NOPASSWD: /usr/sbin/*
 
 chmod +x /var/www/cgi-bin/*
+
 sudo a2enmod cgi
+
 sudo service apache2 restart
