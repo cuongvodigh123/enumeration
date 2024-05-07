@@ -38,7 +38,7 @@ if [ "$found_ip" == true ]; then
     sudo nmap -sV "$ip_address" | tail -n +5 | head -n -2 | while read line;do
         echo "$line <br>"
     done
-    sudo nmap -sU -p 53,67,68,69,111,161,137-138,123,2049 "$ip_address" | tail -n +5 | head -n -2 |while read line;do
+    sudo nmap -sU -sV -p 53,67,68,69,111,161,137-138,123,2049 "$ip_address" | tail -n +5 | head -n -2 |while read line;do
         echo "$line <br>"
     done
 else
