@@ -9,7 +9,7 @@
 <body>
     <div class="main_page">
         <div class="left">
-           <h1>Network Scanning Tool</h1>
+           <h1>Enumeation Tool</h1>
             <form id="scanForm">
                 <label for="ip_address">IP Address:</label><br>
                 <input type="text" id="ip_address" name="ip_address"><br><br>
@@ -22,6 +22,9 @@
         </div>
         <div class="right">
             <input type="button" id="pingnmap" value="Kiểm tra kết nối và quét cổng" onclick="pingandscanport()">
+            <br>
+            <br>
+            <input type="button" id="cve" value="Kiểm tra CVE" onclick="cve()">
             <br>
             <br>
             <input type="checkbox" id="selectAll" onclick="toggleCheckboxes()"><label for="selectAll">Select All</label><br>
@@ -50,8 +53,6 @@
             <label for="port139">NetBios</label>
             <input type="checkbox" id="port161" name="port" value="161" onchange="updatePorts()">
             <label for="port161">SNMP</label>
-            <input type="checkbox" id="port179" name="port" value="179" onchange="updatePorts()">
-            <label for="port179">BGP</label>
             <input type="checkbox" id="port389" name="port" value="389" onchange="updatePorts()">
             <label for="port389">LDAP</label>
             <input type="checkbox" id="port445" name="port" value="445" onchange="updatePorts()">
@@ -62,8 +63,8 @@
         
     </div>
     <br>
-    <button id="clearresult" onclick="clearresult()">Clear</button>
-    <button  onclick="exportHTML()">xuất word</button>
+    <button id="clearresult" onclick="clearresult()">Xóa kết quả</button>
+    <button  onclick="exportHTML()">Xuất word</button>
     <br>
     <div id="validator">
         <p id="result"></p>
@@ -115,6 +116,27 @@
             xhr.send();
         }
 
+        function cve(){
+            var ip_address = document.getElementById("ip_address").value;
+            var url = "/cgi-bin/cve.cgi"
+            url +="?ip_address=" + encodeURIComponent(ip_address);
+
+            var cve = document.getElementById("cve");
+            cve.disabled = true;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", url, true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    document.getElementById("result").innerHTML += xhr.responseText;
+                
+                }
+                cve.disabled = false;
+            };
+            xhr.send();
+        }
+
         function performScan() {
             var ip_address = document.getElementById("ip_address").value;
             if (!ip_address) {
@@ -122,6 +144,10 @@
                 return;
             }
             var ports = document.getElementById("ports").value;
+            if (!ports) {
+                alert("Vui lòng chọn ít nhất một cổng trước khi quét.");
+                return;
+            }
             var startTime = performance.now();
             var scanTimeElement = document.getElementById("scanTime");
             scanTimeElement.innerText = "Đang quét...";

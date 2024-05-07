@@ -24,21 +24,13 @@ echo "Content-type: text/html; charset=utf-8"
 echo ""
 # echo "<html>"
 # echo "<body>"
-echo "<h1>Kiểm tra</h1>"
 
 echo "<p>"
 if [ "$found_ip" == true ]; then
     echo "Địa chỉ IP: $ip_address </p>"
-    echo "<p>Kiểm tra Ping</p>"
+    echo "<p>Kiểm tra CVE</p>"
     echo "<p>"
-    ping "$ip_address" -c 4 |head -n -3 | while read line; do
-        echo "$line <br>"
-    done
-    echo "<p>Kiểm tra các cổng</p>"
-    sudo nmap -sV "$ip_address" | tail -n +5 | head -n -2 | while read line;do
-        echo "$line <br>"
-    done
-    sudo nmap -sU -p 53,67,68,69,111,161,137-138,123,2049 "$ip_address" | tail -n +5 | head -n -2 |while read line;do
+    sudo nmap --script=vulscan/vulscan.nse --script-args vulscandb=cve.csv -sV $ip_address | grep "CVE" | while read line;do
         echo "$line <br>"
     done
 else
